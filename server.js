@@ -6,7 +6,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 app.get('/api/balance', (req, res) => {
-    res.json({ balance: 25430.50, currency: 'USD' });
+    res.json({ balance: 230.50, currency: 'USD' });
 });
 
 app.get('/api/transactions', (req, res) => {
