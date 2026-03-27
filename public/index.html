@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity Bank</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <h1>Antigravity Bank</h1>
+            </div>
+            <nav>
+                <a href="#" class="active">Dashboard</a>
+                <a href="#">Transfers</a>
+                <a href="#">Settings</a>
+            </nav>
+            <div class="profile">
+                <img src="https://ui-avatars.com/api/?name=User&background=4f46e5&color=fff&rounded=true" alt="Profile">
+            </div>
+        </header>
+
+        <main>
+            <div class="balance-card glass-panel">
+                <h2>Total Balance</h2>
+                <div class="balance">
+                    <span class="currency">$</span>
+                    <span class="amount" id="balance-amount">Loading...</span>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-primary">Send Money</button>
+                    <button class="btn btn-secondary">Add Funds</button>
+                </div>
+            </div>
+
+            <div class="transactions-panel glass-panel">
+                <div class="panel-header">
+                    <h2>Recent Transactions</h2>
+                    <a href="#" class="view-all">View All</a>
+                </div>
+                <div class="transaction-list" id="transaction-list">
+                    <div class="loading">Loading transactions...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Fetch balance
+        fetch('/api/balance')
+            .then(res => res.json())
+            .then(data => {
+                const formatter = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: data.currency
+                });
+                document.getElementById('balance-amount').textContent = formatter.format(data.balance).replace('$', '');
+            })
+            .catch(err => {
+                document.getElementById('balance-amount').textContent = 'Error loading';
+                console.error('Error fetching balance:', err);
+            });
+
+        // Fetch transactions
+        fetch('/api/transactions')
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById('transaction-list');
+                list.innerHTML = '';
+                
+                data.forEach(tx => {
+                    const txEl = document.createElement('div');
+                    txEl.className = 'transaction-item';
+                    
+                    const isPositive = tx.amount > 0;
+                    const amountClass = isPositive ? 'amount-positive' : 'amount-negative';
+                    const amountText = isPositive ? `+$${tx.amount.toFixed(2)}` : `-$${Math.abs(tx.amount).toFixed(2)}`;
+                    
+                    const iconClass = isPositive ? 'icon-deposit' : 'icon-withdrawal';
+                    const iconSymbol = isPositive ? '↓' : '↑';
+
+                    txEl.innerHTML = `
+                        <div class="tx-icon ${iconClass}">${iconSymbol}</div>
+                        <div class="tx-details">
+                            <div class="tx-desc">${tx.description}</div>
+                            <div class="tx-date">${tx.date}</div>
+                        </div>
+                        <div class="tx-amount ${amountClass}">${amountText}</div>
+                    `;
+                    list.appendChild(txEl);
+                });
+            })
+            .catch(err => {
+                document.getElementById('transaction-list').innerHTML = '<div class="error">Error loading transactions</div>';
+                console.error('Error fetching transactions:', err);
+            });
+    </script>
+</body>
+</html>
